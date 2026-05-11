@@ -1,3 +1,5 @@
+import pytest
+
 from pipeline import (
     evaluate_extractions,
     get_llm_utility,
@@ -9,8 +11,6 @@ from pipeline import (
 
 
 def test_validate_schema_requires_all_fields():
-    import pytest
-
     with pytest.raises(ValueError):
         validate_schema({"ticket_id": "T-1"})
 

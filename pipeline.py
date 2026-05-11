@@ -97,7 +97,7 @@ class LangChainLLMUtility:
     def extract(self, ticket_id: str, ticket_text: str) -> str:
         prompt = build_prompt(ticket_text)
         response = self._llm.invoke(prompt)
-        content = response.content if isinstance(response.content, str) else str(response.content)
+        content = str(response.content)
         payload = _parse_llm_json(content)
         payload["ticket_id"] = ticket_id
         return json.dumps(payload)
