@@ -1,8 +1,9 @@
 import json
+import os
 import re
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import Dict, List, Protocol, Union
 
 
 REQUIRED_FIELDS = {
@@ -41,6 +42,11 @@ class ExtractionResult:
     requested_action: str
 
 
+class LLMUtility(Protocol):
+    def extract(self, ticket_id: str, ticket_text: str) -> str:
+        ...
+
+
 def build_prompt(ticket_text: str) -> str:
     return (
         "You are an information extraction assistant for customer support tickets. "
@@ -77,7 +83,27 @@ def validate_schema(payload: Dict[str, str]) -> ExtractionResult:
     return ExtractionResult(**payload)
 
 
-class FakeLLMUtility:
+class LangChainLLMUtility:
+    def __init__(self, model: str = "gpt-4o-mini") -> None:
+        try:
+            from langchain_openai import ChatOpenAI
+        except ImportError as exc:  # pragma: no cover
+            raise RuntimeError(
+                "langchain-openai is required for LangChainLLMUtility. "
+                "Install dependencies from requirements.txt."
+            ) from exc
+        self._llm = ChatOpenAI(model=model, temperature=0)
+
+    def extract(self, ticket_id: str, ticket_text: str) -> str:
+        prompt = build_prompt(ticket_text)
+        response = self._llm.invoke(prompt)
+        content = response.content if isinstance(response.content, str) else str(response.content)
+        payload = _parse_llm_json(content)
+        payload["ticket_id"] = ticket_id
+        return json.dumps(payload)
+
+
+class HeuristicLLMUtility:
     def extract(self, ticket_id: str, ticket_text: str) -> str:
         prompt = build_prompt(ticket_text)
         _ = prompt  # included to represent prompt-engineering usage
@@ -183,11 +209,14 @@ def load_dataset(path: Union[str, Path]) -> List[Dict[str, object]]:
     return json.loads(dataset_path.read_text(encoding="utf-8"))
 
 
-def run_pipeline(dataset: List[Dict[str, object]]) -> List[ExtractionResult]:
-    llm = FakeLLMUtility()
+def run_pipeline(
+    dataset: List[Dict[str, object]],
+    llm: Union[LLMUtility, None] = None,
+) -> List[ExtractionResult]:
+    extractor = llm or get_llm_utility()
     results: List[ExtractionResult] = []
     for item in dataset:
-        raw_json = llm.extract(item["ticket_id"], item["text"])
+        raw_json = extractor.extract(item["ticket_id"], item["text"])
         payload = json.loads(raw_json)
         results.append(validate_schema(payload))
     return results
@@ -247,6 +276,26 @@ def evaluate_extractions(
 def _is_abstention(value: str) -> bool:
     lower = value.strip().lower()
     return lower in {"unknown", "ord-unknown", "unknown@example.com"}
+
+
+def _parse_llm_json(content: str) -> Dict[str, str]:
+    try:
+        payload = json.loads(content)
+        return payload
+    except json.JSONDecodeError:
+        pass
+
+    match = re.search(r"\{.*\}", content, flags=re.DOTALL)
+    if not match:
+        raise ValueError("LLM response does not contain valid JSON object")
+    return json.loads(match.group(0))
+
+
+def get_llm_utility() -> LLMUtility:
+    api_key = os.getenv("OPENAI_API_KEY")
+    if api_key:
+        return LangChainLLMUtility()
+    return HeuristicLLMUtility()
 
 
 def main() -> None:

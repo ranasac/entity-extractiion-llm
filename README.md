@@ -11,16 +11,21 @@ This repository includes an end-to-end applied exercise for **prompt engineering
 
 ## Run
 ```bash
+pip install -r requirements.txt
 python pipeline.py
 ```
 
 ## Test
 ```bash
-python -m unittest discover -s tests -p "test_*.py"
+pytest -q
 ```
 
 ## Prompt engineering approach
 The prompt constrains output to JSON only, with explicit required fields and allowed values for categorical fields (`issue_type`, `priority`, `sentiment`).
+
+## LLM utility
+The pipeline uses an actual LLM via LangChain (`langchain-openai`) when `OPENAI_API_KEY` is set.  
+If no API key is set, it falls back to a deterministic heuristic utility for local/offline runs and tests.
 
 ## Schema enforcement and validation
 `validate_schema` enforces:
