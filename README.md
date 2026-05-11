@@ -1,4 +1,4 @@
-# entity-extractiion-llm
+# entity-extraction-llm
 
 This repository includes an end-to-end applied exercise for **prompt engineering + entity extraction** on customer support text.
 

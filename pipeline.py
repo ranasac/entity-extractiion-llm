@@ -212,9 +212,22 @@ def evaluate_extractions(
         if row_match:
             exact_matches += 1
 
-    tp = sum(field_correct.values())
-    fp = total_fields - tp
-    fn = total_fields - tp
+    tp = 0
+    fp = 0
+    fn = 0
+    for predicted, gold in zip(predictions, ground_truth):
+        for field in fields:
+            predicted_value = getattr(predicted, field)
+            gold_value = gold[field]
+            if predicted_value == gold_value:
+                tp += 1
+                continue
+
+            if not _is_abstention(predicted_value):
+                fp += 1
+            if not _is_abstention(gold_value):
+                fn += 1
+
     precision = tp / (tp + fp) if tp + fp else 0.0
     recall = tp / (tp + fn) if tp + fn else 0.0
     f1 = (2 * precision * recall / (precision + recall)) if precision + recall else 0.0
@@ -229,6 +242,11 @@ def evaluate_extractions(
         "micro_recall": recall,
         "micro_f1": f1,
     }
+
+
+def _is_abstention(value: str) -> bool:
+    lower = value.strip().lower()
+    return lower in {"unknown", "ord-unknown", "unknown@example.com"}
 
 
 def main() -> None:
