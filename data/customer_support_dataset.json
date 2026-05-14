@@ -1,0 +1,47 @@
+[
+  {
+    "ticket_id": "T-1001",
+    "text": "Hi support, I'm Maya Patel. I need a refund for my laptop order ORD-4421. I was charged twice and I'm frustrated. Please fix this ASAP. Reach me at maya.patel@example.com",
+    "gold_entities": {
+      "ticket_id": "T-1001",
+      "customer_name": "Maya Patel",
+      "email": "maya.patel@example.com",
+      "order_id": "ORD-4421",
+      "issue_type": "refund_request",
+      "product": "laptop",
+      "priority": "high",
+      "sentiment": "negative",
+      "requested_action": "process_refund"
+    }
+  },
+  {
+    "ticket_id": "T-1002",
+    "text": "Hello, This is John Rivera. My router order ORD-7812 still hasn't arrived and delivery is late. Please check shipment today. Email john.rivera@example.com",
+    "gold_entities": {
+      "ticket_id": "T-1002",
+      "customer_name": "John Rivera",
+      "email": "john.rivera@example.com",
+      "order_id": "ORD-7812",
+      "issue_type": "delivery_issue",
+      "product": "router",
+      "priority": "high",
+      "sentiment": "neutral",
+      "requested_action": "check_shipment"
+    }
+  },
+  {
+    "ticket_id": "T-1003",
+    "text": "Hi team, I am Elena Morris. I can't login to my subscription account after password reset. This is urgent and not working for me. Contact: elena.morris@example.com",
+    "gold_entities": {
+      "ticket_id": "T-1003",
+      "customer_name": "Elena Morris",
+      "email": "elena.morris@example.com",
+      "order_id": "ORD-UNKNOWN",
+      "issue_type": "account_access",
+      "product": "subscription",
+      "priority": "high",
+      "sentiment": "negative",
+      "requested_action": "reset_account_access"
+    }
+  }
+]
